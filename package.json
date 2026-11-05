@@ -1,0 +1,31 @@
+{
+  "name": "proyecto-final",
+  "version": "1.0.0",
+  "description": "Servidor MCP desarrollado con Node.js y TypeScript que integra la API de GitHub para gestionar repositorios, issues y commits mediante herramientas utilizadas por agentes de inteligencia artificial.",
+  "type": "module",
+  "main": "dist/server.js",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "vitest run",
+    "test-watch": "vitest",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts'",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [ "mcp", "mcp-server", "github" ],
+  "author": "Matias Gaitan",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@octokit/rest": "^22.0.1",
+    "dotenv": "^18.0.9",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
