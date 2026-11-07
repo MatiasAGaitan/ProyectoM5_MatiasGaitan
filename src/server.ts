@@ -6,8 +6,7 @@ import { ValidationError, fail } from "./errors/index.js"
 import { logger } from "./utils/logging.js"
 import { createOctokit } from "./github/client.js"
 import { createGitHubOperations } from "./github/operations.js"
-import { ListRepositoriesTool } from "./tools/listRepositoriesTool.js"
-import { CreateIssueTool } from "./tools/createIssuesTool.js"
+import { ListRepositoriesTool, CreateIssueTool, CreateCommitTool } from "./tools/index.js"
 
 
 const INFO_SERVER = { name: "github-mcp-server", version: "1.0.0" }
@@ -17,7 +16,8 @@ const github = createGitHubOperations(createOctokit())
 const tools: McpTool[] = [
 
     ListRepositoriesTool(github),
-    CreateIssueTool(github)
+    CreateIssueTool(github),
+    CreateCommitTool(github)
 ]
 
 const server = new Server(INFO_SERVER, { capabilities: { tools: {} } })

@@ -3,13 +3,16 @@ import { AppError, GitHubAPIError, toAppError } from "../errors/index.js"
 import type { ErrorContext } from "../types/errorTypes.js"
 import { withRetry, DEFAULT_RETRY, type RetryOptions } from "../utils/retry.js"
 import type { CommitDTO, IssueDTO, RepositoryDTO, RepositoryInfo } from "../types/dtosTypes.js"
-import type { CreateIssueInput, ListRepositoriesInput } from "../schemas/index.js"
+import type { CreateIssueInput, ListRepositoriesInput, CommitFileInput } from "../schemas/index.js"
 
 export interface GitHubOperations {
     listRepositories(input: ListRepositoriesInput): Promise<RepositoryDTO[]>
     createIssue(input: CreateIssueInput): Promise<IssueDTO>
     getRepository(owner: string, repo: string): Promise<RepositoryInfo>
+    createCommitWithFile(input: CommitFileInput): Promise<CommitDTO>
 }
+
+
 
 const soloRateLimit = (err: AppError) => err.retryable && (err.status === 403 || err.status === 429)
 
@@ -63,6 +66,98 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
                 octokit.rest.repos.get({ owner, repo }),
             )
             return { full_name: data.full_name, default_branch: data.default_branch, has_issues: data.has_issues }
+        },
+
+        async createCommitWithFile({ owner, repo, branch, path, content, message }) {
+
+            const ctx = { operation: "crear el commit", owner, repo, branch }
+
+            let baseCommitSha: string
+
+            try {
+
+                const { data: ref } = await call(ctx, () => octokit.rest.git.getRef({
+                    owner,
+                    repo,
+                    ref: `heads/${branch}`
+                }))
+
+                baseCommitSha = ref.object.sha
+
+            } catch (err) {
+
+                if (err instanceof AppError && err.status === 404) {
+
+                    throw new GitHubAPIError(`La rama ${branch} no existe en ${owner}/${repo}.`, {
+                        status: 404,
+                        hint: "Usá una rama que exista, o no mandes branch para usar la rama principal del repo.",
+                        details: { step: "1/6 getRef" }
+                    })
+                }
+                throw err
+            }
+
+            const { data: baseCommit } = await call(ctx, () => octokit.rest.git.getCommit({
+                owner,
+                repo,
+                commit_sha: baseCommitSha
+            }))
+
+            const { data: blob } = await call(ctx, () => octokit.rest.git.createBlob({
+                owner,
+                repo,
+                content: Buffer.from(content, "utf8").toString("base64"),
+                encoding: "base64"
+            }))
+
+            const { data: tree } = await call(ctx, () => octokit.rest.git.createTree({
+                owner,
+                repo,
+                base_tree: baseCommit.tree.sha,
+                tree: [{ path, mode: "100644", type: "blob", sha: blob.sha }]
+            }))
+
+            const { data: newCommit } = await call(ctx, () => octokit.rest.git.createCommit({
+                owner,
+                repo,
+                message,
+                tree: tree.sha,
+                parents: [baseCommitSha]
+            }))
+
+            try {
+
+                await call(ctx, () => octokit.rest.git.updateRef({
+                    owner,
+                    repo,
+                    ref: `heads/${branch}`,
+                    sha: newCommit.sha,
+                    force: false
+                }),
+                    soloRateLimit
+                )
+
+            } catch (err) {
+
+                if (err instanceof AppError && err.status === 422) {
+
+                    throw new GitHubAPIError(`La rama ${branch} cambió mientras se creaba el commit.`, {
+                        status: 422,
+                        hint: "Otra persona hizo un commit en esa rama. Volvé a ejecutar la tool: va a partir del commit nuevo.",
+                        details: { step: "6/6 updateRef" }
+                    })
+                }
+                throw err
+            }
+
+            return {
+
+                commit_sha: newCommit.sha,
+                commit_url: newCommit.html_url,
+                branch,
+                path,
+                file_url: `https://github.com/${owner}/${repo}/blob/${branch}/${path}`
+            }
         }
 
     }
