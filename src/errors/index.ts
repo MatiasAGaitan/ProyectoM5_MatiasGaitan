@@ -1,5 +1,5 @@
 
-import type { ErrorCode, ErrorAction, AppErrorOptions, ErrorContext, OctokitLikeError, ToolErrorPayload } from "../types/error_types.ts"
+import type { ErrorCode, ErrorAction, AppErrorOptions, ErrorContext, OctokitLikeError, ToolErrorPayload } from "../types/errorTypes.js"
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { logger } from "../utils/logging.js"
 
