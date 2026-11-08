@@ -1,20 +1,9 @@
 import type { Octokit } from "@octokit/rest"
 import { AppError, GitHubAPIError, toAppError } from "../errors/index.js"
-import type { ErrorContext } from "../types/errorTypes.js"
 import { withRetry, DEFAULT_RETRY, type RetryOptions } from "../utils/retry.js"
-import type { CommitDTO, IssueDTO, RepositoryDTO, RepositoryInfo } from "../types/dtosTypes.js"
-import type { CreateIssueInput, ListRepositoriesInput, CommitFileInput } from "../schemas/index.js"
+import type { ErrorContext, GitHubOperations } from "../types/index.js"
 
-export interface GitHubOperations {
-    listRepositories(input: ListRepositoriesInput): Promise<RepositoryDTO[]>
-    createIssue(input: CreateIssueInput): Promise<IssueDTO>
-    getRepository(owner: string, repo: string): Promise<RepositoryInfo>
-    createCommitWithFile(input: CommitFileInput): Promise<CommitDTO>
-}
-
-
-
-const soloRateLimit = (err: AppError) => err.retryable && (err.status === 403 || err.status === 429)
+const retryOnlyOnRateLimit = (err: AppError) => err.retryable && (err.status === 403 || err.status === 429)
 
 export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = DEFAULT_RETRY): GitHubOperations {
 
@@ -42,12 +31,49 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
             }))
         },
 
+        async listIssues({ owner, repo, state, sort, direction, per_page }) {
+
+            const { data } = await call({ operation: "listar los issues de un repositorio", owner, repo }, () =>
+                octokit.rest.issues.listForRepo({ owner, repo, state, sort, direction, per_page })
+            )
+
+            return data
+                .filter(i => !i.pull_request)
+                .map(i => ({
+                    number: i.number,
+                    title: i.title,
+                    state: i.state,
+                    html_url: i.html_url,
+                    labels: i.labels.map(label =>
+                        typeof label === "string" ? label : label.name ?? ""
+                    )
+                }))
+        },
+
+        async createRepository({ name, description, private: isPrivate, auto_init }) {
+
+            const { data } = await call(
+                { operation: "crear repositorio" },
+                () => octokit.rest.repos.createForAuthenticatedUser({ name, description, private: isPrivate, auto_init }),
+                retryOnlyOnRateLimit
+            )
+            return {
+
+                full_name: data.full_name,
+                owner: data.owner.login,
+                name: data.name,
+                private: data.private,
+                description: data.description,
+                html_url: data.html_url
+            }
+        },
+
         async createIssue({ owner, repo, title, body, labels }) {
 
             const { data } = await call(
-                { operation: "crear el issue", owner, repo },
+                { operation: "crear issue", owner, repo },
                 () => octokit.rest.issues.create({ owner, repo, title, ...(body ? { body } : {}), ...(labels ? { labels } : {}) }),
-                soloRateLimit
+                retryOnlyOnRateLimit
             )
 
             return {
@@ -134,7 +160,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
                     sha: newCommit.sha,
                     force: false
                 }),
-                    soloRateLimit
+                    retryOnlyOnRateLimit
                 )
 
             } catch (err) {
@@ -158,7 +184,7 @@ export function createGitHubOperations(octokit: Octokit, retry: RetryOptions = D
                 path,
                 file_url: `https://github.com/${owner}/${repo}/blob/${branch}/${path}`
             }
-        }
+        },
 
     }
 } 

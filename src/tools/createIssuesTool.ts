@@ -1,5 +1,5 @@
 import type { McpTool } from "../types/index.js"
-import type { GitHubOperations } from "../github/operations.js"
+import type { GitHubOperations } from "../types/gitHubTypes.js"
 import { CreateIssueSchema, toJsonSchema } from "../schemas/index.js"
 import { fromZodError, GitHubAPIError, fail } from "../errors/index.js"
 
@@ -8,9 +8,17 @@ export function CreateIssueTool(github: GitHubOperations): McpTool {
         definition: {
             name: "create_issue",
             description: `
-            Crea un Issue nuevo en un repositorio de GitHub, requiere owner, repo y title.
-            Si no sabes el owner o el nombre exacto de repositorio utilia list_repositories.
-            Escribe en GitHuby, el issue queda publicado, no sirve para modificar ni cerrar issues existentes`,
+                        Crea y publica un issue nuevo en un repositorio existente de GitHub.
+                        Usar para reportar bugs, solicitar mejoras o registrar tareas pendientes.
+                        
+                        Requiere owner, repo y title. Body es opcional.
+                        Si no conocés el repositorio o propietario, utilizar list_repositories.
+                        No inventar datos faltantes.
+
+                        Esta operación escribe en GitHub.
+                        NO usar para listar, modificar, comentar o cerrar issues existentes.
+                        NO crear issues duplicados.
+                            `,
             inputSchema: toJsonSchema(CreateIssueSchema)
         },
 
@@ -27,7 +35,7 @@ export function CreateIssueTool(github: GitHubOperations): McpTool {
                 const info = await github.getRepository(owner, repo)
 
                 if (!info.has_issues) {
-                    throw new GitHubAPIError(`El repositorio ${owner}/${repo} tiene los issues descativados`, {
+                    throw new GitHubAPIError(`El repositorio ${owner}/${repo} tiene los issues desactivados`, {
                         hint: "Activalos en GitHub: Settings -> General -> Features -> Issues"
                     })
                 }

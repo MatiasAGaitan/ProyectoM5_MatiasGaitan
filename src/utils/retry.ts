@@ -1,7 +1,6 @@
 import { AppError } from "../errors/index.js"
 import { logger } from "./logging.js"
 
-
 export interface RetryOptions {
     maxRetries: number
     baseDelayMs: number

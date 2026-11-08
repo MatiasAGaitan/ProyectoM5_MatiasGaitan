@@ -1,5 +1,5 @@
 import type { McpTool } from "../types/index.js"
-import type { GitHubOperations } from "../github/operations.js"
+import type { GitHubOperations } from "../types/gitHubTypes.js"
 import { ListRepositoriesSchema, toJsonSchema } from "../schemas/index.js"
 import { fromZodError, fail } from "../errors/index.js"
 

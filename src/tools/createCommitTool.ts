@@ -1,5 +1,5 @@
 import type { McpTool } from "../types/index.js"
-import type { GitHubOperations } from "../github/operations.js"
+import type { GitHubOperations } from "../types/gitHubTypes.js"
 import { CreateCommitSchema, toJsonSchema } from "../schemas/index.js"
 import { fromZodError, fail } from "../errors/index.js"
 
@@ -35,7 +35,7 @@ export function CreateCommitTool(github: GitHubOperations): McpTool {
 
             } catch (err) {
 
-                return fail("create-commit", err)
+                return fail("create_commit", err)
 
             }
         }

@@ -1,3 +1,5 @@
 export { ListRepositoriesTool } from "./listRepositoriesTool.js"
 export { CreateIssueTool } from "./createIssuesTool.js"
+export { CreateRepositoryTool } from "./createRepositoryTool.js"
 export { CreateCommitTool } from "./createCommitTool.js"
+export { ListIssuesTool } from "./listIssuesTool.js"

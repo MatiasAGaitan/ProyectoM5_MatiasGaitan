@@ -6,7 +6,7 @@ import { ValidationError, fail } from "./errors/index.js"
 import { logger } from "./utils/logging.js"
 import { createOctokit } from "./github/client.js"
 import { createGitHubOperations } from "./github/operations.js"
-import { ListRepositoriesTool, CreateIssueTool, CreateCommitTool } from "./tools/index.js"
+import { ListRepositoriesTool, CreateIssueTool, CreateCommitTool, CreateRepositoryTool, ListIssuesTool } from "./tools/index.js"
 
 
 const INFO_SERVER = { name: "github-mcp-server", version: "1.0.0" }
@@ -17,7 +17,9 @@ const tools: McpTool[] = [
 
     ListRepositoriesTool(github),
     CreateIssueTool(github),
-    CreateCommitTool(github)
+    CreateRepositoryTool(github),
+    CreateCommitTool(github),
+    ListIssuesTool(github)
 ]
 
 const server = new Server(INFO_SERVER, { capabilities: { tools: {} } })
@@ -54,7 +56,7 @@ async function main() {
 
 main().catch((err) => {
 
-    logger.error("El serviodr se pudo iniciar", { message: err instanceof Error ? err.message : String(err) })
+    logger.error("El servidor no se pudo iniciar", { message: err instanceof Error ? err.message : String(err) })
 
     process.exit(1)
 })
