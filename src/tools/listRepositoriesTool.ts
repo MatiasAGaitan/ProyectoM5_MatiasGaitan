@@ -8,9 +8,14 @@ export function ListRepositoriesTool(github: GitHubOperations): McpTool {
         definition: {
             name: "list_repositories",
             description: `
-            Lista los repositorios del usuario dueño del token (usuario autenticado).
-            Usala para descubrir que repos existen y obtener el owner y el nombre exacto
-            antes de crear issues o commits. Solo Lectura. No lista repositorios de otros usuarios ni muestras issues.`,
+                            Lista los repositorios accesibles del usuario autenticado en GitHub.
+                            Usar para consultar repositorios y obtener su owner y nombre exacto
+                            antes de crear issues, commits u otras operaciones.
+
+                            Esta operación es de SOLO LECTURA, no modifica GitHub.
+                            NO usar para crear, modificar o eliminar repositorios,
+                            ni para listar issues o archivos.
+                            `,
             inputSchema: toJsonSchema(ListRepositoriesSchema)
         },
 

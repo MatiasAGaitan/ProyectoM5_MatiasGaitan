@@ -8,10 +8,16 @@ export function CreateCommitTool(github: GitHubOperations): McpTool {
         definition: {
             name: "create_commit",
             description: `
-            Crea o modifica un único archivo de texto en un repositorio de GitHub mediante un commit, 
-            por ejemplo README.md o docs/notas.md. Si el archivo ya existe, reemplaza completamente su contenido por el nuevo.
-            Requiere owner, repo, path, content y message; branch es opcional y, si no se especifica, utiliza la rama principal del repositorio.
-            Los cambios se guardan en GitHub y quedan registrados en el historial de commits. No sirve para crear issues ni repositorios.`,
+                        Crea o modifica un archivo de texto en un repositorio existente de GitHub mediante un commit.
+                        Usar cuando el usuario solicite agregar un archivo o actualizar su contenido.
+
+                        Requiere owner, repo, path, content y message.
+                        Branch es opcional; por defecto utiliza la rama principal del repositorio.
+
+                        IMPORTANTE: Si el archivo ya existe, reemplaza TODO su contenido.
+                        Esta operación escribe directamente en GitHub y registra un commit.
+                        NO usar para consultar archivos, crear repositorios, issues ni modificar varios archivos a la vez.
+                        `,
             inputSchema: toJsonSchema(CreateCommitSchema)
         },
 
