@@ -5,7 +5,10 @@ export interface GitHubOperations {
     listRepositories(input: ListRepositoriesInput): Promise<RepositoryDTO[]>
     createIssue(input: CreateIssueInput): Promise<IssueDTO>
     getRepository(owner: string, repo: string): Promise<RepositoryInfo>
-    createCommitWithFile(input: CreateCommitInput): Promise<CommitDTO>
+    createCommitWithFile(input: CreateCommitWithFileInput): Promise<CommitDTO>
     createRepository(input: CreateRepositoryInput): Promise<RepositoryDTO>
     listIssues(input: ListIssuesInput): Promise<IssueDTO[]>
 }
+
+export type CreateCommitWithFileInput =
+    Omit<CreateCommitInput, "branch"> & { branch: string }

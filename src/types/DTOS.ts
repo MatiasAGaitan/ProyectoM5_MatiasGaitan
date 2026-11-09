@@ -19,6 +19,7 @@ export interface CommitDTO {
     commit_sha: string,
     commit_url: string,
     branch: string,
+    path: string,
     file_url: string
 }
 

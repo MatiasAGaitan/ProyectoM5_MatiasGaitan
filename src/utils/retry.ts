@@ -37,9 +37,22 @@ export async function withRetry<T>(
 
             const retryAfter = Number(err.details?.["retryAfter"])
 
-            const backoff = opts.baseDelayMs * 2 ** attempt
+            const reset = Number(err.details?.["reset"])
 
-            const waitMs = Math.min(retryAfter > 0 ? retryAfter * 1000 : backoff, opts.maxDelayMs)
+            const backoff = Math.min(
+                opts.baseDelayMs * 2 ** attempt,
+                opts.maxDelayMs
+            )
+
+            const resetDelayMs = reset * 1000 - Date.now()
+
+            let waitMs = backoff
+
+            if (Number.isFinite(retryAfter) && retryAfter > 0) {
+                waitMs = Math.max(backoff, retryAfter * 1000)
+            } else if (Number.isFinite(resetDelayMs) && resetDelayMs > 0) {
+                waitMs = Math.max(backoff, resetDelayMs)
+            }
 
             logger.warn("reintentando request", { attempt: attempt + 1, waitMs, code: err.code, status: err.status })
 

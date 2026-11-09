@@ -10,11 +10,4 @@ export const CreateCommitSchema = z.object({
     branch: z.string().trim().min(1).optional().describe("Rama donde commitear. Si no se indica, se usa la rama principal del repo")
 })
 
-export type CreateCommitInput = {
-    owner: string;
-    repo: string;
-    branch: string;
-    path: string;
-    content: string;
-    message: string;
-}
+export type CreateCommitInput = z.infer<typeof CreateCommitSchema>

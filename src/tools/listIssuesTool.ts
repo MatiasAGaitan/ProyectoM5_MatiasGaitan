@@ -14,7 +14,7 @@ export function ListIssuesTool(github: GitHubOperations): McpTool {
                         Requiere owner y repo.
                         Opcionales: state (open, closed, all; default open),
                         sort (created, updated, comments; default created),
-                        direction (asc, desc; default desc) y per_page (1-50; default 25).
+                        direction (asc, desc; default desc) y per_page (1-100; default 50).
 
                         Si no conocés el propietario o repositorio, utilizar list_repositories.
                         No inventar datos faltantes.
